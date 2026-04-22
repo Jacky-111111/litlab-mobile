@@ -8,7 +8,10 @@ import {
   Text,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 
 import { Card } from "@/components/Card";
 import { EmptyState } from "@/components/EmptyState";
@@ -64,6 +67,7 @@ function useTitleStyle() {
 }
 
 function AllPapersView() {
+  const insets = useSafeAreaInsets();
   const { state, reload } = useAsyncResource<PapersEnvelope>(
     () => api.get<PapersEnvelope>("/papers", { limit: PAGE_SIZE, offset: 0 }),
     []
@@ -73,11 +77,16 @@ function AllPapersView() {
     await reload();
   }, [reload]);
 
+  const scrollContentStyle = [
+    styles.scroll,
+    { paddingBottom: spacing.xl + insets.bottom },
+  ];
+
   if (state.status === "loading") return <LoadingView />;
   if (state.status === "failed") {
     return (
       <ScrollView
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={scrollContentStyle}
         refreshControl={
           <RefreshControl refreshing={false} onRefresh={onRefresh} />
         }
@@ -92,7 +101,7 @@ function AllPapersView() {
   return (
     <ScrollView
       style={styles.flex}
-      contentContainerStyle={styles.scroll}
+      contentContainerStyle={scrollContentStyle}
       refreshControl={
         <RefreshControl refreshing={false} onRefresh={onRefresh} />
       }
@@ -112,19 +121,18 @@ function AllPapersView() {
 
 function PapersListCard({ papers }: { papers: Paper[] }) {
   return (
-    <Card style={styles.listCard} padding={0}>
-      {papers.map((p, i) => (
-        <PaperRow
-          key={p.id}
-          paper={p}
-          showDivider={i < papers.length - 1}
-        />
+    <View style={styles.papersStack}>
+      {papers.map((p) => (
+        <Card key={p.id} style={styles.paperCardShell} padding={spacing.xxl}>
+          <PaperRow paper={p} layout="standalone" />
+        </Card>
       ))}
-    </Card>
+    </View>
   );
 }
 
 function CollectionsView() {
+  const insets = useSafeAreaInsets();
   const { state, reload } = useAsyncResource<CollectionsEnvelope>(
     () => api.get<CollectionsEnvelope>("/collections"),
     []
@@ -133,6 +141,11 @@ function CollectionsView() {
   const onRefresh = useCallback(async () => {
     await reload();
   }, [reload]);
+
+  const scrollContentStyle = [
+    styles.scroll,
+    { paddingBottom: spacing.xl + insets.bottom },
+  ];
 
   const collections = useMemo(
     () => (state.status === "loaded" ? state.value.collections : []),
@@ -143,7 +156,7 @@ function CollectionsView() {
   if (state.status === "failed") {
     return (
       <ScrollView
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={scrollContentStyle}
         refreshControl={
           <RefreshControl refreshing={false} onRefresh={onRefresh} />
         }
@@ -156,7 +169,7 @@ function CollectionsView() {
   return (
     <ScrollView
       style={styles.flex}
-      contentContainerStyle={styles.scroll}
+      contentContainerStyle={scrollContentStyle}
       refreshControl={
         <RefreshControl refreshing={false} onRefresh={onRefresh} />
       }
@@ -238,7 +251,10 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     flexGrow: 1,
   },
-  listCard: {
+  papersStack: {
+    gap: spacing.lg,
+  },
+  paperCardShell: {
     overflow: "hidden",
   },
   collectionList: {

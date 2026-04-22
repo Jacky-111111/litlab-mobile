@@ -65,6 +65,7 @@ export default function CollectionPapersScreen() {
           headerStyle: { backgroundColor: theme.surface },
           headerTintColor: theme.text,
           headerTitleStyle: { color: theme.text },
+          headerBackTitle: "Back",
         }}
       />
       <ScrollView

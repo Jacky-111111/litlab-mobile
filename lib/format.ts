@@ -4,7 +4,8 @@
 
 export function paperTitle(p: { nickname: string; title: string }): string {
   const nickname = p.nickname?.trim();
-  return nickname && nickname.length > 0 ? nickname : p.title;
+  const raw = nickname && nickname.length > 0 ? nickname : p.title;
+  return raw.replace(/\s+/g, " ").trim();
 }
 
 export function authorsLine(authors: string[], year?: number | null): string {
