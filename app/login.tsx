@@ -92,8 +92,6 @@ export default function LoginScreen() {
                   autoCorrect={false}
                   keyboardType="email-address"
                   textContentType="emailAddress"
-                  placeholder="you@school.edu"
-                  placeholderTextColor={theme.muted}
                   style={[
                     styles.input,
                     {
@@ -118,8 +116,6 @@ export default function LoginScreen() {
                   autoComplete="password"
                   autoCorrect={false}
                   textContentType="password"
-                  placeholder="••••••••"
-                  placeholderTextColor={theme.muted}
                   style={[
                     styles.input,
                     {
