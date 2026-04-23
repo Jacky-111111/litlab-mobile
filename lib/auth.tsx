@@ -7,8 +7,14 @@ import React, {
   useMemo,
   useState,
 } from "react";
+import { AppState, type AppStateStatus, LogBox } from "react-native";
 
 import { supabase } from "./supabase";
+
+/** GoTrue logs this before clearing the session; RN LogBox treats it as fatal. */
+LogBox.ignoreLogs([
+  "AuthApiError: Invalid Refresh Token: Refresh Token Not Found",
+]);
 
 interface AuthContextValue {
   session: Session | null;
@@ -26,23 +32,54 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let mounted = true;
+
+    const clearLocalSession = async () => {
+      await supabase.auth.signOut({ scope: "local" });
+      if (mounted) setSession(null);
+    };
+
     supabase.auth
       .getSession()
-      .then(({ data }) => {
+      .then(({ data, error }) => {
         if (!mounted) return;
+        if (error) {
+          void clearLocalSession();
+          return;
+        }
         setSession(data.session);
+      })
+      .catch(() => {
+        void clearLocalSession();
       })
       .finally(() => {
         if (mounted) setIsReady(true);
       });
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, s) => {
-      setSession(s);
+      if (mounted) setSession(s);
     });
 
     return () => {
       mounted = false;
       listener.subscription.unsubscribe();
+    };
+  }, []);
+
+  /** Supabase RN: only auto-refresh while app is active to avoid bad refresh races. */
+  useEffect(() => {
+    const syncAutoRefresh = (state: AppStateStatus) => {
+      if (state === "active") {
+        void supabase.auth.startAutoRefresh();
+      } else {
+        void supabase.auth.stopAutoRefresh();
+      }
+    };
+
+    syncAutoRefresh(AppState.currentState);
+    const sub = AppState.addEventListener("change", syncAutoRefresh);
+    return () => {
+      sub.remove();
+      void supabase.auth.stopAutoRefresh();
     };
   }, []);
 

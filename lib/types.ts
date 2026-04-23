@@ -81,3 +81,55 @@ export interface Paper {
 export interface PapersEnvelope {
   papers: Paper[];
 }
+
+/** `GET /collections/{id}/sharing` — fields may vary; extend as backend evolves. */
+export interface CollectionSharing {
+  visibility: string;
+  share_slug: string | null;
+  invited_emails?: string[];
+}
+
+export interface SharedCollectionSharer {
+  nickname?: string | null;
+  email?: string | null;
+}
+
+/** `GET /shared/c/{slug}` — success payload (shape aligned with web shared-collection). */
+export interface SharedCollectionGranted {
+  access: "granted";
+  collection: Collection;
+  papers: Paper[];
+  sharer?: SharedCollectionSharer | null;
+  viewer?: unknown;
+}
+
+export interface SharedCollectionDenied {
+  access: "denied";
+  /** e.g. private | sign_in_required | not_authorized */
+  denied?: string;
+  denied_reason?: string;
+  detail?: string;
+}
+
+export type SharedCollectionResponse =
+  | SharedCollectionGranted
+  | SharedCollectionDenied;
+
+export function isSharedCollectionGranted(
+  r: SharedCollectionResponse
+): r is SharedCollectionGranted {
+  return r.access === "granted";
+}
+
+export function sharedCollectionDeniedReason(r: SharedCollectionDenied): string {
+  if (typeof r.denied_reason === "string" && r.denied_reason.length > 0) {
+    return r.denied_reason;
+  }
+  if (typeof r.denied === "string" && r.denied.length > 0) {
+    return r.denied;
+  }
+  if (typeof r.detail === "string" && r.detail.length > 0) {
+    return r.detail;
+  }
+  return "unknown";
+}

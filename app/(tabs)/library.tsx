@@ -17,7 +17,7 @@ import { Card } from "@/components/Card";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorBanner } from "@/components/ErrorBanner";
 import { LoadingView } from "@/components/LoadingView";
-import { PaperRow } from "@/components/PaperRow";
+import { PapersListCard } from "@/components/PapersListCard";
 import { ScreenBackground } from "@/components/ScreenBackground";
 import { SegmentedControl } from "@/components/SegmentedControl";
 import { api } from "@/lib/api";
@@ -25,7 +25,6 @@ import { fontSize, fontWeight, spacing, useTheme } from "@/lib/theme";
 import type {
   Collection,
   CollectionsEnvelope,
-  Paper,
   PapersEnvelope,
 } from "@/lib/types";
 import { useAsyncResource } from "@/lib/useAsyncResource";
@@ -116,18 +115,6 @@ function AllPapersView() {
         <PapersListCard papers={papers} />
       )}
     </ScrollView>
-  );
-}
-
-function PapersListCard({ papers }: { papers: Paper[] }) {
-  return (
-    <View style={styles.papersStack}>
-      {papers.map((p) => (
-        <Card key={p.id} style={styles.paperCardShell} padding={spacing.xxl}>
-          <PaperRow paper={p} layout="standalone" />
-        </Card>
-      ))}
-    </View>
   );
 }
 
@@ -250,12 +237,6 @@ const styles = StyleSheet.create({
     paddingTop: spacing.sm,
     gap: spacing.md,
     flexGrow: 1,
-  },
-  papersStack: {
-    gap: spacing.lg,
-  },
-  paperCardShell: {
-    overflow: "hidden",
   },
   collectionList: {
     gap: spacing.md,

@@ -1,23 +1,61 @@
-import { Stack, useLocalSearchParams } from "expo-router";
+import { HeaderBackButton } from "@react-navigation/elements";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback } from "react";
-import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
+import {
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Card } from "@/components/Card";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorBanner } from "@/components/ErrorBanner";
 import { LoadingView } from "@/components/LoadingView";
-import { PaperRow } from "@/components/PaperRow";
+import { PapersListCard } from "@/components/PapersListCard";
 import { ScreenBackground } from "@/components/ScreenBackground";
 import { api } from "@/lib/api";
-import { spacing, useTheme } from "@/lib/theme";
+import { fontWeight, spacing, useTheme } from "@/lib/theme";
 import type { PapersEnvelope } from "@/lib/types";
 import { useAsyncResource } from "@/lib/useAsyncResource";
+
+function CollectionShareHeaderButton({
+  id,
+  title,
+}: {
+  id: string;
+  title: string;
+}) {
+  const router = useRouter();
+  const theme = useTheme();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel="Share collection"
+      onPress={() =>
+        router.push({
+          pathname: "/collection/[id]/share",
+          params: { id, title },
+        })
+      }
+      style={styles.headerShareHit}
+    >
+      <Text style={[styles.headerShareLabel, { color: theme.primary }]}>
+        Share
+      </Text>
+    </Pressable>
+  );
+}
 
 export default function CollectionPapersScreen() {
   const params = useLocalSearchParams<{ id: string; title?: string }>();
   const id = String(params.id ?? "");
   const title = typeof params.title === "string" ? params.title : "Collection";
   const theme = useTheme();
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   const { state, reload } = useAsyncResource<PapersEnvelope>(
     () => api.get<PapersEnvelope>(`/collections/${id}/papers`),
@@ -43,17 +81,7 @@ export default function CollectionPapersScreen() {
         />
       );
     }
-    return (
-      <Card style={styles.listCard} padding={0}>
-        {papers.map((p, i) => (
-          <PaperRow
-            key={p.id}
-            paper={p}
-            showDivider={i < papers.length - 1}
-          />
-        ))}
-      </Card>
-    );
+    return <PapersListCard papers={papers} />;
   })();
 
   return (
@@ -66,11 +94,25 @@ export default function CollectionPapersScreen() {
           headerTintColor: theme.text,
           headerTitleStyle: { color: theme.text },
           headerBackTitle: "Back",
+          headerLeft: (props) => (
+            <HeaderBackButton
+              {...props}
+              onPress={() => router.back()}
+              tintColor={theme.text}
+              label="Back"
+            />
+          ),
+          headerRight: () => (
+            <CollectionShareHeaderButton id={id} title={title} />
+          ),
         }}
       />
       <ScrollView
         style={styles.flex}
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={[
+          styles.scroll,
+          { paddingBottom: spacing.xl + insets.bottom },
+        ]}
         refreshControl={
           <RefreshControl refreshing={false} onRefresh={onRefresh} />
         }
@@ -88,7 +130,12 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     flexGrow: 1,
   },
-  listCard: {
-    overflow: "hidden",
+  headerShareHit: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  headerShareLabel: {
+    fontSize: 16,
+    fontWeight: fontWeight.semibold,
   },
 });
