@@ -1,50 +1,77 @@
-# Welcome to your Expo app 👋
+# LitLab Mobile
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+**LitLab Mobile** is a companion app for [**LitLab**](https://github.com/Jacky-111111/litlab)—the beginner-friendly research assistant with a web frontend, FastAPI backend, and Supabase auth/data. This repository is **not** a full copy of that project; it exposes a **focused subset** of LitLab for **phones and tablets**, built with **Expo** so you can develop and ship iOS and Android from one codebase.
 
-## Get started
+If you use LitLab on the web, the mobile app lets you sign in with the **same account**, browse your **library and collections**, open **project** guidance, manage **collection sharing** (link + QR + visibility), and open **shared collections** via link—without replacing the full dashboard experience.
 
-1. Install dependencies
+## Relationship to the main LitLab repo
+
+| | [litlab (main)](https://github.com/Jacky-111111/litlab) | **litlab-mobile (this repo)** |
+|---|--------------------------------------------------------|-------------------------------|
+| **Role** | Full product: projects, library, AI actions, PDFs, dashboard, etc. | Mobile-friendly **read-oriented** access plus **collection sharing** tools |
+| **UI** | Vanilla HTML/CSS/JS frontend | **Expo Router** + React Native |
+| **API** | Same backend contract (`/api/...`) | Calls the same deployed API (see `lib/config.ts`) |
+| **Auth** | Supabase | Same Supabase session (email/password in-app) |
+
+Anything not listed under [What’s in the app](#whats-in-the-app) should still be done on the **web app** (create papers/projects beyond what the API allows from mobile, heavy AI flows, full PDF workflow, etc.).
+
+## Tech stack
+
+- **Expo SDK 54** — managed workflow, `expo start`, EAS-friendly native builds  
+- **expo-router** — file-based navigation (`app/`)  
+- **React Native** + **TypeScript**  
+- **Supabase JS** — session persistence (e.g. AsyncStorage)  
+- **Same LitLab API** as production (configurable base URL in `lib/config.ts`)
+
+## What’s in the app
+
+- **Sign in** — LitLab account via Supabase (aligned with the main stack described in the [main README](https://github.com/Jacky-111111/litlab#readme)).  
+- **Library** — all papers and **collections**; paper rows; **paper detail** (metadata, abstract, citations, open source URL in browser).  
+- **Projects** — list projects; **framework guidance** and papers attached to a project.  
+- **Account** — profile summary and sign out.  
+- **Collections** — open a collection’s papers; **Share** screen for owners: visibility, invite list, copy canonical web link, fetch **QR PNG** from the API, regenerate share slug (same behavior as the web dashboard’s sharing model).  
+- **Shared collections** — open `…/shared-collection.html?slug=…` (and in-app route) for read-only shared views; optional auth when the link requires it.  
+- **Deep linking** — iOS Associated Domains / Android intent filters toward the deployed web host (see `app.json`); Universal Links need a valid `apple-app-site-association` on that host.
+
+For API shapes and historical v1 scope notes, see **`IOS_APP_SPEC.md`** in this repo (ported from the monorepo spec).
+
+## What’s intentionally limited
+
+The mobile app does **not** try to replicate every LitLab web feature. Examples: no in-app PDF reader, no full AI action suite from the dashboard, no replacing the web UI for complex authoring. Use **[Jacky-111111/litlab](https://github.com/Jacky-111111/litlab)** for the complete workflow; use **this app** when you want quick mobile access to library, projects, and sharing.
+
+## Prerequisites
+
+- Node.js (see Expo 54 docs for supported versions)  
+- **npm** or **yarn**  
+- For device builds: Xcode (iOS), Android Studio (Android), or **EAS Build**
+
+## Getting started
+
+1. **Clone** this repo (it is separate from the main LitLab tree).
+
+2. **Install dependencies**
 
    ```bash
    npm install
    ```
 
-2. Start the app
+3. **Configure** `lib/config.ts` if you need a different API, Supabase project, or web origin than the checked-in defaults (must match a working LitLab deployment).
+
+4. **Start Expo**
 
    ```bash
    npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+   Then open in **iOS Simulator**, **Android Emulator**, a **development build**, or [Expo Go](https://expo.dev/go) where compatible.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+5. **Scripts**
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+   - `npm run ios` / `npm run android` — run native projects after prebuild, if you use them  
+   - `npm run lint` — ESLint via Expo
 
-## Get a fresh project
+## Documentation
 
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- [Expo documentation](https://docs.expo.dev/)  
+- [LitLab (main project)](https://github.com/Jacky-111111/litlab)  
+- Deployed example referenced in config: [litlab-delta.vercel.app](https://litlab-delta.vercel.app) (from the main repo’s setup)
